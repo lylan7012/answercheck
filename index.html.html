@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: calm, friendly classroom tool — clear for teenagers, tidy for the teacher
+   IDEA: a printed answer sheet with seven columns, one pen per student
+   PICTURE: the answer grid itself, at the top under a modest green band
+   COLOUR and TYPE: leaf green, milk white, cream, black ink; Be Vietnam Pro (Vietnamese diacritics)
+   LAYOUT: band → status → grid (scrolls sideways on phones, question column sticky) → teacher panel */
+:root{color-scheme:light;--g:#2e7d4f;--gd:#1d5a37;--gl:#dcefdf;--milk:#fbf9f2;--cream:#f3ead2;--cream2:#ebdfbf;--ink:#151515;--mute:#5b5a52;--line:#d9cfb4;--bad:#b8402f;--badl:#f7e0da}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--milk);color:var(--ink);font:16px/1.5 "Be Vietnam Pro",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,3vw,36px) max(4vw,16px)}
+header{background:var(--g);color:#fff}
+header .in{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+h1{margin:0;font-size:clamp(32px,5vw,48px);line-height:1.05;font-weight:800;letter-spacing:-.01em}
+header p{margin:6px 0 0;color:#e6f3e8}
+.who{background:var(--milk);color:var(--ink);border-radius:999px;padding:8px 16px;font-weight:600;font-size:15px}
+.who b{color:var(--gd)}
+main{max-width:1240px;margin:0 auto;padding:20px max(4vw,16px) 48px}
+.note{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.note.err{background:var(--badl);border-color:#e7b9ae}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--mute);margin:0 0 10px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 1px 0 var(--line)}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:900px}
+th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}
+tr>*:last-child{border-right:0}
+tbody tr:last-child>*{border-bottom:0}
+thead th{background:var(--cream);position:sticky;top:0;z-index:2;font-weight:600}
+.qc{position:sticky;left:0;z-index:1;background:var(--milk);width:220px;min-width:180px}
+thead .qc{z-index:3;background:var(--cream2)}
+.qn{font-weight:700;color:var(--gd);white-space:nowrap}
+.qt{font-size:15px;margin-top:2px}
+.qy{font-size:13px;color:var(--mute)}
+.ch{font-size:15px}
+.ch .nm{display:block;font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.ch .sc{display:inline-block;margin-top:4px;font-size:13px;background:var(--gl);color:var(--gd);border-radius:999px;padding:1px 9px;font-weight:600}
+.ch .empty{color:var(--mute);font-weight:400;font-size:14px}
+th.mine{background:var(--g);color:#fff}
+th.mine .sc{background:#fff}
+td.mine{background:#fffdf5;box-shadow:inset 3px 0 0 var(--g),inset -3px 0 0 var(--g)}
+td.ro{color:var(--ink);font-size:15px}
+td.ro .v{display:inline-block;min-width:28px;font-weight:600;overflow-wrap:anywhere}
+td.ro .blank{color:#b3ab95}
+td.ok{background:var(--gl)}td.bad{background:var(--badl)}
+td.mine.ok{background:#e9f6ec}td.mine.bad{background:#fbece8}
+.mk{font-weight:800;margin-left:4px}.ok .mk{color:var(--gd)}.bad .mk{color:var(--bad)}
+.key{display:block;font-size:13px;color:var(--mute);margin-top:4px;overflow-wrap:anywhere}
+.opts{display:flex;gap:6px}
+.opt{flex:1;min-width:40px;height:44px;border:1.5px solid var(--g);background:#fff;color:var(--gd);border-radius:10px;font:700 16px/1 inherit;cursor:pointer}
+.opt:hover{background:var(--gl)}
+.opt.on{background:var(--g);color:#fff}
+.ta{width:100%;min-height:44px;font:16px/1.4 inherit;padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);resize:vertical}
+.ta:focus,.opt:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #86c79a;outline-offset:1px;border-color:var(--g)}
+td.mine .row{display:flex;align-items:center;gap:4px}
+button.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1.5px solid var(--g);background:var(--g);color:#fff;font:600 15px inherit;cursor:pointer}
+button.btn.ghost{background:#fff;color:var(--gd)}
+button.btn.warn{background:#fff;color:var(--bad);border-color:var(--bad)}
+button.btn:disabled{opacity:.5;cursor:default}
+.claim{margin-top:6px;min-height:40px;padding:0 12px;font-size:14px}
+.save{font-size:13px;color:var(--mute);margin-left:auto}
+.teacher{margin-top:28px;background:var(--cream);border:1px solid var(--line);border-radius:14px}
+.teacher summary{cursor:pointer;padding:16px 18px;font-weight:700;font-size:18px;min-height:44px}
+.teacher .body{padding:0 18px 18px;display:grid;gap:14px}
+.teacher textarea{width:100%;min-height:220px;font:15px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+.teacher .help{font-size:14px;color:var(--mute);margin:0}
+.teacher code{background:#fff;border-radius:5px;padding:1px 5px;font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bar label{display:flex;gap:8px;align-items:center;min-height:44px;font-weight:500}
+.bar input[type=checkbox]{width:20px;height:20px;accent-color:var(--g)}
+.file{position:relative;overflow:hidden}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.roster{width:100%;min-width:0;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
+.roster th,.roster td{border:0;border-bottom:1px solid var(--line);padding:8px;vertical-align:middle;font-size:15px}
+.roster input{width:100%;min-height:44px;font:16px inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px}
+.roster .code{font:700 17px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;color:var(--gd);white-space:nowrap}
+.roster .st{font-size:13px;color:var(--mute);white-space:nowrap}.roster .st.on{color:var(--gd);font-weight:600}
+.roster button{min-height:40px;font-size:13px;padding:0 10px;white-space:nowrap}
+.slot{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.slot button{min-height:36px;font-size:13px;padding:0 10px}
+.modal{position:fixed;inset:0;background:rgba(20,30,20,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal.open{display:flex}
+.card{background:var(--milk);border-radius:16px;padding:22px;width:min(420px,100%);box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.card h2{margin:0 0 6px;font-size:22px}
+.card p{margin:0 0 14px;color:var(--mute);font-size:15px}
+.card input{width:100%;min-height:46px;font:16px inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:14px}
+.card .bar{justify-content:flex-end}
+.msg{font-size:14px;color:var(--bad);min-height:20px;margin:-6px 0 8px}
+.pin{min-height:44px;font:16px inherit;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);width:min(260px,100%)}
+#lock .msg{margin:0}
+@media(max-width:600px){.qc{width:150px;min-width:150px}h1{font-size:34px}}
+@media(prefers-reduced-motion:no-preference){td{transition:background-color .25s}}
+</style>
+</head>
+<body>
+<header class="band"><div class="in">
+  <div><h1>Answer Check</h1><p>Giáo viên xếp tên vào từng cột. Bấm vào cột có tên mình để làm bài; cột của bạn khác chỉ để xem.</p></div>
+  <div class="who" id="who">Đang kết nối…</div>
+</div></header>
+
+<main>
+  <div class="note" id="note" hidden></div>
+  <div class="legend"><span style="--c:var(--g)">Cột của bạn</span><span style="--c:var(--gl)">Đúng</span><span style="--c:var(--badl)">Sai</span><span id="saveState" class="save"></span></div>
+  <div class="wrap"><table id="grid" aria-label="Bảng đáp án 7 cột"></table></div>
+
+  <details class="teacher" id="teacher">
+    <summary>Dành cho giáo viên (cần mã)</summary>
+    <div class="body" id="lock">
+      <p class="help" id="lockHelp">Nhập mã giáo viên để mở phần này.</p>
+      <div class="bar"><input type="password" id="pass" class="pin" autocomplete="current-password" placeholder="Mã giáo viên" aria-label="Mã giáo viên"><button class="btn" id="unlock">Mở khóa</button></div>
+      <div class="msg" id="lockMsg"></div>
+    </div>
+    <div class="body" id="tbody" hidden>
+      <div>
+        <p class="help" style="margin-bottom:8px">Xếp tên học sinh vào 7 cột rồi bấm "Lưu danh sách". "Trả cột" xóa bài làm và mở lại cột (khi học sinh vào nhầm). "Đổi máy" giữ bài làm nhưng cho học sinh vào lại từ máy khác.</p>
+        <div class="scroll"><table class="roster stack" id="roster"></table></div>
+        <div class="bar" style="margin-top:10px"><button class="btn" id="saveRoster">Lưu danh sách</button><span id="rosterInfo" class="help"></span></div>
+      </div>
+      <p class="help">Đáp án — mỗi dòng một câu: <code>số | đáp án</code>. Đáp án là một chữ A–D thì thành câu trắc nghiệm; còn lại là câu tự luận. Nhiều đáp án tự luận được chấp nhận thì ngăn bằng dấu <code>/</code>. Khi chấm, chữ hoa, chữ IN, chữ thường, khoảng trắng thừa và dấu chấm cuối câu đều được bỏ qua — chính tả phải đúng.</p>
+      <textarea id="keyText" spellcheck="false" placeholder="1 | B&#10;2 | C&#10;3 | I have lived here for 3 years / I've lived here for 3 years"></textarea>
+      <div class="bar">
+        <span class="file" role="button" style="display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1.5px solid var(--g);border-radius:10px;color:var(--gd);font-weight:600;font-size:15px;background:#fff">Mở file đáp án (.txt, .csv)<input type="file" id="keyFile" accept=".txt,.csv,text/plain,text/csv"></span>
+        <button class="btn" id="saveKey">Lưu đáp án</button>
+        <span id="keyInfo" class="help"></span>
+      </div>
+      <div class="bar">
+        <label><input type="checkbox" id="optResult"> Hiện đúng/sai và điểm</label>
+        <label><input type="checkbox" id="optKey"> Hiện đáp án đúng ở câu sai</label>
+      </div>
+      <div class="bar"><button class="btn warn" id="resetAll">Xóa toàn bộ bài làm</button><span id="resetConfirm" class="help"></span></div>
+      <div class="bar"><input type="password" id="newPass" class="pin" autocomplete="new-password" placeholder="Mã mới (ít nhất 4 ký tự)" aria-label="Mã giáo viên mới"><button class="btn ghost" id="setPass">Đổi mã</button><button class="btn ghost" id="relock">Khóa lại</button><span id="passInfo" class="help"></span></div>
+    </div>
+  </details>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="card">
+    <h2 id="mTitle">Vào cột</h2>
+    <p id="mText"></p>
+    <div class="msg" id="mMsg"></div>
+    <div class="bar"><button class="btn ghost" id="mCancel">Hủy</button><button class="btn" id="mOk">Vào cột</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+const N = 7;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const run = (fn, ...args) => new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args));
+const errText = e => (e && e.message ? String(e.message).replace(/^Error:\s*/, '') : 'Không kết nối được, thử lại.');
+
+let deviceId = '';
+try {
+  deviceId = localStorage.getItem('ac-device') || '';
+  if (!deviceId) { deviceId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12); localStorage.setItem('ac-device', deviceId); }
+} catch (e) { deviceId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12); }
+
+let st = null, myAnswers = {}, mineInit = false, pendingRender = false, lastInput = 0, claimSlot = 0;
+let teacherPass = '', tData = null;
+
+const me = () => (st ? st.mySlot : 0);
+const showNote = (t, err) => { const n = $('note'); n.hidden = !t; n.textContent = t || ''; n.classList.toggle('err', !!err); };
+const saveState = t => { $('saveState').textContent = t; };
+
+function apply(s) {
+  if (!s) return;
+  st = s; showNote('');
+  const m = s.mySlot;
+  if (m && !mineInit) { myAnswers = Object.assign({}, s.cols[m - 1].answers); mineInit = true; }
+  if (!m && mineInit) { mineInit = false; myAnswers = {}; saveState('Giáo viên đã trả cột của bạn'); }
+  requestRender();
+  if (tData) rosterStatus();
+}
+
+function cellHTML(q, c, own) {
+  const v = own ? myAnswers[q.n] : (c.answers || {})[q.n];
+  const synced = !own || v === (c.answers || {})[q.n];
+  const res = c.res && synced && v ? c.res[q.n] : undefined;
+  const cls = [own ? 'mine' : 'ro', res === true ? 'ok' : res === false ? 'bad' : ''].join(' ');
+  const mk = res === true ? '✓' : res === false ? '✗' : '';
+  const key = res === false && st.showKey && st.keys[q.n] != null ? `<span class="key">Đáp án: ${esc(st.keys[q.n])}</span>` : '';
+  let inner = '';
+  if (own) {
+    if (q.type === 'mc') inner = `<div class="row"><div class="opts" role="radiogroup" aria-label="Câu ${esc(q.n)}">${['A','B','C','D'].map(o =>
+      `<button class="opt${v === o ? ' on' : ''}" data-q="${esc(q.n)}" data-v="${o}" role="radio" aria-checked="${v === o}">${o}</button>`).join('')}</div><span class="mk">${mk}</span></div>`;
+    else inner = `<div class="row"><textarea class="ta" rows="1" id="in-${esc(q.n)}" data-q="${esc(q.n)}" spellcheck="false" autocapitalize="off" placeholder="Viết câu trả lời…">${esc(v || '')}</textarea><span class="mk">${mk}</span></div>`;
+  } else if (c.taken || v) inner = (v ? `<span class="v">${esc(v)}</span>` : `<span class="v blank">—</span>`) + `<span class="mk">${mk}</span>`;
+  return `<td class="${cls}">${inner}${key}</td>`;
+}
+
+function render() {
+  pendingRender = false;
+  if (!st) return;
+  const ae = document.activeElement, fid = ae && ae.id, s0 = ae && ae.selectionStart, s1 = ae && ae.selectionEnd;
+  const m = me(), qs = st.questions || [];
+  const head = `<thead><tr><th class="qc">Câu hỏi</th>${st.cols.map(c => {
+    const own = c.slot === m;
+    const sc = st.showResult && qs.length && c.taken ? `<span class="sc">${esc(c.score)}/${qs.length} đúng</span>` : '';
+    const body = !c.name ? `<span class="empty">Chưa xếp tên</span>`
+      : `<span class="nm">${esc(c.name)}${own ? ' (bạn)' : ''}</span>` + (c.taken ? sc
+        : `<span class="empty">Chưa vào</span>${!m ? `<br><button class="btn claim" data-claim="${c.slot}">Đây là tôi</button>` : ''}`);
+    return `<th class="ch${own ? ' mine' : ''}">Cột ${c.slot}${body}</th>`;
+  }).join('')}</tr></thead>`;
+  const rows = qs.length ? qs.map(q => `<tr><th class="qc" scope="row"><div class="qn">Câu ${esc(q.n)}</div><div class="qy">${q.type === 'mc' ? 'Trắc nghiệm A–D' : 'Tự luận'}</div></th>${
+    st.cols.map(c => cellHTML(q, c, c.slot === m)).join('')}</tr>`).join('')
+    : `<tr><td class="qc" colspan="${N + 1}" style="position:static">Chưa có đáp án. Giáo viên mở phần "Dành cho giáo viên" bên dưới để nhập.</td></tr>`;
+  $('grid').innerHTML = head + '<tbody>' + rows + '</tbody>';
+  document.querySelectorAll('.ta').forEach(grow);
+  if (fid) { const el = $(fid); if (el) { el.focus(); try { el.setSelectionRange(s0, s1); } catch (e) {} } }
+  $('who').innerHTML = m ? `Bạn đang làm <b>Cột ${m}</b>` : 'Bấm "Đây là tôi" ở cột có tên bạn';
+}
+function requestRender() {
+  const typing = document.activeElement && document.activeElement.classList.contains('ta') && Date.now() - lastInput < 1500;
+  if (typing) { if (!pendingRender) { pendingRender = true; setTimeout(requestRender, 1600); } return; }
+  render();
+}
+function grow(t) { t.style.height = 'auto'; t.style.height = Math.max(44, t.scrollHeight + 2) + 'px'; }
+
+// ---------- polling ----------
+let inFlight = false, fails = 0;
+async function poll() {
+  if (inFlight || saving || document.hidden) return;
+  inFlight = true;
+  try { apply(await run('getState', deviceId)); fails = 0; }
+  catch (e) { if (++fails >= 2) showNote('Mất kết nối, đang thử lại…', true); }
+  finally { inFlight = false; }
+}
+setInterval(poll, 3000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+
+// ---------- saving ----------
+let saving = false, dirty = false, timer = 0;
+function scheduleSave(ms) { clearTimeout(timer); saveState('Chưa lưu…'); timer = setTimeout(save, ms); }
+async function save() {
+  const m = me(); if (!m) return;
+  if (saving) { dirty = true; return; }
+  saving = true; dirty = false; saveState('Đang lưu…');
+  try { apply(await run('saveAnswers', m, deviceId, Object.assign({}, myAnswers))); saveState('Đã lưu'); }
+  catch (e) { saveState(errText(e)); if (!/quyền/.test(errText(e))) dirty = true; }
+  finally { saving = false; if (dirty) setTimeout(save, 600); }
+}
+function setAnswer(n, v, rerender) {
+  if (!me()) return;
+  if (v === '' || v == null) delete myAnswers[n]; else myAnswers[n] = v;
+  if (rerender) render();
+  scheduleSave(rerender ? 150 : 900);
+}
+$('grid').addEventListener('click', e => {
+  const o = e.target.closest('.opt');
+  if (o) { const n = o.dataset.q, v = o.dataset.v; setAnswer(n, myAnswers[n] === v ? '' : v, true); return; }
+  const c = e.target.closest('[data-claim]');
+  if (c) openClaim(+c.dataset.claim);
+});
+$('grid').addEventListener('input', e => {
+  const t = e.target.closest('.ta'); if (!t) return;
+  lastInput = Date.now(); grow(t); setAnswer(t.dataset.q, t.value, false);
+  const mk = t.parentElement.querySelector('.mk'); if (mk) mk.textContent = '';
+  const td = t.closest('td'); td.classList.remove('ok', 'bad');
+});
+$('grid').addEventListener('focusout', e => { if (e.target.closest('.ta') && pendingRender) setTimeout(requestRender, 50); });
+
+// ---------- claiming ----------
+function openClaim(s) {
+  claimSlot = s; const c = st.cols[s - 1];
+  $('mTitle').textContent = 'Bạn là ' + c.name + '?'; $('mMsg').textContent = '';
+  $('mText').textContent = 'Bạn sẽ làm bài ở Cột ' + s + '. Sau khi vào, bạn chỉ làm bài trên cột này và không đổi sang cột khác được.';
+  $('modal').classList.add('open'); setTimeout(() => $('mOk').focus(), 30);
+}
+const closeClaim = () => $('modal').classList.remove('open');
+$('mCancel').addEventListener('click', closeClaim);
+$('modal').addEventListener('click', e => { if (e.target === $('modal')) closeClaim(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeClaim(); });
+$('mOk').addEventListener('click', async () => {
+  $('mOk').disabled = true; $('mMsg').textContent = '';
+  try { mineInit = false; apply(await run('claim', claimSlot, deviceId)); closeClaim(); saveState('Đã vào cột ' + claimSlot); }
+  catch (e) { $('mMsg').textContent = errText(e); }
+  finally { $('mOk').disabled = false; }
+});
+
+// ---------- teacher ----------
+function showTeacher(d) {
+  tData = d;
+  $('lock').hidden = true; $('tbody').hidden = false; $('pass').value = '';
+  if (document.activeElement !== $('keyText')) $('keyText').value = d.raw || '';
+  $('keyInfo').textContent = d.count + ' câu đã lưu';
+  $('optResult').checked = d.showResult; $('optKey').checked = d.showKey;
+  renderRoster();
+}
+function renderRoster() {
+  $('roster').innerHTML = '<thead><tr><th>Cột</th><th>Tên học sinh</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
+    Array.from({length: N}, (_, i) => { const n = i + 1; return `<tr><td><b>Cột ${n}</b></td><td><input id="rn-${n}" maxlength="40" value="${esc(tData.names[i] || '')}" placeholder="Họ tên"></td>
+      <td class="st" id="rs-${n}"></td><td><button class="btn ghost" data-free="${n}" data-keep="0">Trả cột</button> <button class="btn ghost" data-free="${n}" data-keep="1">Đổi máy</button></td></tr>`; }).join('') + '</tbody>';
+  rosterStatus();
+}
+function rosterStatus() {
+  for (let n = 1; n <= N; n++) {
+    const el = $('rs-' + n); if (!el) continue;
+    const c = st ? st.cols[n - 1] : null, name = c ? c.name : tData.names[n - 1], taken = c ? c.taken : tData.taken[n - 1];
+    el.textContent = !name ? 'Trống' : taken ? 'Đã vào' : 'Chưa vào'; el.classList.toggle('on', !!taken);
+  }
+}
+async function tCall(fn, ...args) {
+  try { const d = await run(fn, teacherPass, ...args); if (d && typeof d === 'object') showTeacher(d); poll(); return true; }
+  catch (e) { const t = errText(e); if (/Mã giáo viên không đúng/.test(t)) relock(); showNote(t, true); return false; }
+}
+async function loadStatus() {
+  try {
+    const s = await run('tStatus');
+    $('lockHelp').textContent = s.hasPass ? 'Nhập mã giáo viên để mở phần này.' : 'Chưa có mã giáo viên. Hãy đặt mã (ít nhất 4 ký tự) — lần sau phải nhập mã này mới mở được.';
+    $('unlock').textContent = s.hasPass ? 'Mở khóa' : 'Đặt mã và mở';
+  } catch (e) {}
+}
+$('pass').addEventListener('keydown', e => { if (e.key === 'Enter') $('unlock').click(); });
+$('unlock').addEventListener('click', async () => {
+  const v = $('pass').value; $('lockMsg').textContent = ''; $('unlock').disabled = true;
+  try { const d = await run('tLogin', v); teacherPass = v; try { sessionStorage.setItem('ac-t', v); } catch (e) {} showTeacher(d); loadStatus(); }
+  catch (e) { $('lockMsg').textContent = errText(e); }
+  finally { $('unlock').disabled = false; }
+});
+function relock() { teacherPass = ''; tData = null; try { sessionStorage.removeItem('ac-t'); } catch (e) {} $('lock').hidden = false; $('tbody').hidden = true; loadStatus(); }
+$('relock').addEventListener('click', relock);
+$('saveRoster').addEventListener('click', async () => {
+  $('saveRoster').disabled = true; $('rosterInfo').textContent = 'Đang lưu…';
+  const names = Array.from({length: N}, (_, i) => $('rn-' + (i + 1)).value);
+  $('rosterInfo').textContent = (await tCall('tRoster', names)) ? 'Đã lưu danh sách.' : '';
+  $('saveRoster').disabled = false;
+});
+$('roster').addEventListener('click', async e => {
+  const b = e.target.closest('[data-free]'); if (!b) return;
+  const label = b.dataset.keep === '1' ? 'Đổi máy' : 'Trả cột';
+  if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Bấm lần nữa'; setTimeout(() => { b.dataset.sure = ''; b.textContent = label; }, 4000); return; }
+  b.disabled = true;
+  if (await tCall('tFree', +b.dataset.free, b.dataset.keep === '1')) $('rosterInfo').textContent = label === 'Trả cột' ? 'Đã trả cột ' + b.dataset.free + ' và xóa bài làm.' : 'Cột ' + b.dataset.free + ' giữ bài làm, học sinh vào lại từ máy mới.';
+});
+$('keyText').addEventListener('input', () => { $('keyInfo').textContent = 'Chưa lưu'; });
+$('keyFile').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  let t = await f.text();
+  if (/\.csv$/i.test(f.name)) t = t.split(/\r?\n/).map(l => l.split(/[,;](?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"').trim()).filter(Boolean).join(' | ')).join('\n');
+  $('keyText').value = t; $('keyInfo').textContent = 'Chưa lưu'; e.target.value = '';
+});
+$('saveKey').addEventListener('click', async () => {
+  $('saveKey').disabled = true; $('keyInfo').textContent = 'Đang lưu…';
+  if (await tCall('tSaveKey', $('keyText').value)) $('keyInfo').textContent = 'Đã lưu ' + tData.count + ' câu.';
+  $('saveKey').disabled = false;
+});
+const saveOpts = () => tCall('tOptions', $('optResult').checked, $('optKey').checked);
+$('optResult').addEventListener('change', saveOpts);
+$('optKey').addEventListener('change', saveOpts);
+let resetArmed = 0;
+$('resetAll').addEventListener('click', async () => {
+  if (Date.now() - resetArmed > 4000) { resetArmed = Date.now(); $('resetConfirm').textContent = 'Bấm lần nữa trong 4 giây để xóa bài làm của cả 7 cột.'; return; }
+  resetArmed = 0; $('resetConfirm').textContent = 'Đang xóa…';
+  $('resetConfirm').textContent = (await tCall('tReset')) ? 'Đã xóa toàn bộ bài làm.' : '';
+});
+$('setPass').addEventListener('click', async () => {
+  const v = $('newPass').value;
+  try { await run('tChangePass', teacherPass, v); teacherPass = v; try { sessionStorage.setItem('ac-t', v); } catch (e) {} $('newPass').value = ''; $('passInfo').textContent = 'Đã đổi mã.'; }
+  catch (e) { $('passInfo').textContent = errText(e); }
+});
+
+// ---------- start ----------
+poll(); loadStatus();
+try { const p = sessionStorage.getItem('ac-t'); if (p) run('tLogin', p).then(d => { teacherPass = p; showTeacher(d); }).catch(() => sessionStorage.removeItem('ac-t')); } catch (e) {}
+})();
+</script>
+</body>
+</html>
